@@ -1,0 +1,4 @@
+$scene_line
+This photo was judged "$verdict" for an object detection dataset whose targets are: $targets.
+The criterion to keep a photo is: $keep_if
+In one short sentence, state the main reason for that verdict.

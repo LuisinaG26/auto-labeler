@@ -1,0 +1,110 @@
+# Entorno de autolabel. Por ahora solo existen las imágenes y el servicio de modelos.
+# Los servicios MCP y el orquestador se agregan a medida que se implementan.
+#
+# Uso:
+#   docker compose build
+#   docker compose run --rm gpu python -c "import torch; print(torch.cuda.is_available())"
+
+x-gpu: &gpu
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: 1
+            capabilities: [gpu]
+
+services:
+  # Imagen GPU, para el servidor MCP del detector y los embeddings
+  gpu:
+    image: autolabel-gpu:dev
+    build:
+      context: .
+      dockerfile: docker/gpu.Dockerfile
+    <<: *gpu
+    volumes:
+      - .:/app
+      - hf-cache:/cache/huggingface
+      - ./dataset-tomates:/data/dataset-tomates:ro
+    working_dir: /app
+    profiles: ["tools"]
+
+  # Servidor MCP del detector. Sin estado de proyecto: recibe clases y prompts en cada llamada
+  mcp-detector:
+    image: autolabel-gpu:dev
+    command: ["python", "-m", "services.mcp_detector"]
+    <<: *gpu
+    environment:
+      MCP_TRANSPORT: streamable-http
+      MCP_PORT: "8001"
+      AUTOLABEL_ALLOWED_ROOTS: /app/projects:/data
+    volumes:
+      - .:/app
+      - hf-cache:/cache/huggingface
+      - ./dataset-tomates:/data/dataset-tomates:ro
+    ports:
+      - "127.0.0.1:8001:8001"      # solo desde esta máquina: el servidor no tiene autenticación
+    working_dir: /app
+    profiles: ["services"]
+
+  # Servidor MCP del filtro de calidad. Sin GPU ni modelos
+  mcp-quality:
+    image: autolabel-light:dev
+    command: ["python", "-m", "services.mcp_quality"]
+    environment:
+      MCP_TRANSPORT: streamable-http
+      MCP_PORT: "8002"
+      AUTOLABEL_ALLOWED_ROOTS: /app/projects:/data
+    volumes:
+      - .:/app
+      - ./dataset-tomates:/data/dataset-tomates:ro
+    ports:
+      - "127.0.0.1:8002:8002"      # solo desde esta máquina: el servidor no tiene autenticación
+    working_dir: /app
+    profiles: ["services"]
+
+  # Revisión humana. Sirve las imágenes locales desde /data, de solo lectura.
+  # No trae usuario ni contraseña: la primera vez que se abre http://127.0.0.1:8080 se crea la cuenta.
+  # El puerto queda solo en esta máquina. No lo expongas a la red sin poner autenticación delante.
+  label-studio:
+    image: heartexlabs/label-studio:latest
+    environment:
+      LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED: "true"
+      LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT: /data
+    volumes:
+      - ls-data:/label-studio/data
+      - ./dataset-tomates:/data/dataset-tomates:ro
+      - ./projects:/data/projects:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    profiles: ["review"]
+
+  # Imagen liviana, para el orquestador, la calidad y el dataset
+  light:
+    image: autolabel-light:dev
+    build:
+      context: .
+      dockerfile: docker/light.Dockerfile
+    volumes:
+      - .:/app
+      - ./dataset-tomates:/data/dataset-tomates:ro
+    working_dir: /app
+    profiles: ["tools"]
+
+  # Servidor del modelo de visión-lenguaje. Un solo modelo cargado a la vez por la VRAM
+  ollama:
+    image: ollama/ollama:latest
+    <<: *gpu
+    environment:
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_NUM_PARALLEL: "1"
+    volumes:
+      - ollama-models:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"    # solo desde esta máquina: Ollama no tiene autenticación
+    profiles: ["vlm"]
+
+volumes:
+  hf-cache:
+  ollama-models:
+  ls-data:

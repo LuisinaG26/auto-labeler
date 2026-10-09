@@ -1,0 +1,5 @@
+$scene_line
+You are screening photos for an object detection dataset. The target objects are: $targets.
+Keep the photo if: $keep_if
+Drop it if that is not true, for example when it is too blurry, the targets are not visible, or they are too small to tell apart.
+Answer "unsure" only when you really cannot tell.

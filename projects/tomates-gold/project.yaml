@@ -1,0 +1,34 @@
+name: tomates-gold
+images: ./images
+scene: "fotos de cultivo de tomate en invernadero, tomadas a mano con celular"
+
+classes:
+  - name: verde
+    prompt: "green unripe tomato"
+    synonyms: ["unripe tomato"]
+    definition: "tomate completamente verde, visible al menos en 50%"
+    not_this: ["hoja", "pimiento verde"]
+    source_labels: [b_green, l_green]
+    min_box_px: 10
+  - name: semimaduro
+    prompt: "half-ripe tomato"
+    synonyms: ["orange tomato"]
+    definition: "tomate con transición de verde a rojo o naranja"
+    source_labels: [b_half_ripened, l_half_ripened]
+    min_box_px: 10
+  - name: maduro
+    prompt: "ripe red tomato"
+    synonyms: ["red tomato"]
+    definition: "tomate rojo o rosado completamente maduro"
+    source_labels: [b_fully_ripened, l_fully_ripened]
+    min_box_px: 10
+
+detector:
+  backend: grounding_dino
+  model_id: IDEA-Research/grounding-dino-tiny
+  box_threshold: 0.25
+  text_threshold: 0.25
+  nms_iou: 0.5
+  agnostic_prompt: "tomato"
+
+export: [yolo, coco]

@@ -1,0 +1,20 @@
+# Imagen liviana (sin GPU): orquestador LangGraph, calidad de imagen y dataset.
+# Orquestación (LangGraph) y checkpoints en SQLite para reanudar lotes
+langgraph
+langgraph-checkpoint-sqlite
+langchain-core
+langchain-mcp-adapters
+openai
+httpx
+# Misma serie que la imagen GPU
+mcp>=1.30,<2
+pydantic
+pyyaml
+numpy
+pillow
+opencv-python-headless
+pycocotools
+
+# Desarrollo: pruebas y análisis estático
+pytest
+ruff

@@ -1,0 +1,7 @@
+$scene_line
+$reference_line
+The last image is a tight crop around one: $noun. Decide which class it belongs to.
+Judge only the object in the center of the crop and ignore neighbours at the edges.
+
+Class definitions:
+$class_definitions

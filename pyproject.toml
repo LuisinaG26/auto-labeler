@@ -1,0 +1,23 @@
+[project]
+name = "autolabel"
+version = "0.1.0"
+description = "Etiquetador genérico de object detection guiado por texto"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+# E/F: errores básicos, I: imports, UP: sintaxis moderna, B: bugbear, SIM: simplificaciones, RUF: varios
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+    "RUF001", "RUF002", "RUF003",  # texto en español con tildes y signos
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["autolabel", "services", "eval"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

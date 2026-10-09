@@ -1,0 +1,3 @@
+$scene_line
+This image is a tight crop around one candidate detection of: $noun.
+What does the main subject in the center of the crop show?

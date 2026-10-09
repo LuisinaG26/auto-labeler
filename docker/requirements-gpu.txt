@@ -1,0 +1,17 @@
+# Imagen GPU: servidores MCP con modelos (detector, embeddings de referencia).
+# torch y torchvision se instalan aparte desde el índice CUDA en el Dockerfile.
+# LangGraph no va aquí: el orquestador corre en la imagen liviana (requirements-light.txt)
+# y llama a estos servidores por MCP.
+transformers
+accelerate
+timm
+safetensors
+huggingface_hub
+scipy
+numpy
+pillow
+opencv-python-headless
+pydantic
+pyyaml
+# Misma serie que la imagen liviana (langchain-mcp-adapters exige mcp 1.x)
+mcp>=1.30,<2

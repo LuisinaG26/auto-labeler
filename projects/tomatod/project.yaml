@@ -1,0 +1,67 @@
+name: tomatod
+images: ./images
+scene: "robot camera photos of tomato plants inside a greenhouse, wide views with many small fruits"
+
+classes:
+  - name: unripe
+    prompt: "green unripe tomato"
+    synonyms: ["green tomato"]
+    definition: "completely green tomato, no red or orange color yet"
+    not_this: ["leaf", "stem"]
+    source_labels: [unripe]
+    min_box_px: 10
+    # De la calibración (parte "calib"): 0,82 da 80% de precisión en caja y clase, y 0,17 deja
+    # por debajo como mucho el 5% de las cajas correctas. Rechazar de más cuesta más que mostrar
+    # una caja sobrante, porque dibujar una que falta pesa más que borrar una de más.
+    thresholds: { auto_accept: 0.82, review: 0.17 }
+  - name: semi-ripe
+    prompt: "half-ripe tomato"
+    synonyms: ["orange tomato"]
+    definition: "tomato changing color, part green and part orange or red"
+    not_this: ["leaf", "stem"]
+    source_labels: [semi-ripe]
+    min_box_px: 10
+    # De la calibración (parte "calib"): 0,82 da 80% de precisión en caja y clase, y 0,17 deja
+    # por debajo como mucho el 5% de las cajas correctas. Rechazar de más cuesta más que mostrar
+    # una caja sobrante, porque dibujar una que falta pesa más que borrar una de más.
+    thresholds: { auto_accept: 0.82, review: 0.17 }
+  - name: fully-ripe
+    prompt: "ripe red tomato"
+    synonyms: ["red tomato"]
+    definition: "completely red tomato"
+    not_this: ["leaf", "stem"]
+    source_labels: [fully-ripe]
+    min_box_px: 10
+    # De la calibración (parte "calib"): 0,82 da 80% de precisión en caja y clase, y 0,17 deja
+    # por debajo como mucho el 5% de las cajas correctas. Rechazar de más cuesta más que mostrar
+    # una caja sobrante, porque dibujar una que falta pesa más que borrar una de más.
+    thresholds: { auto_accept: 0.82, review: 0.17 }
+
+# Cortes sugeridos por `quality --calibrate`: aceptar hasta un desenfoque equivalente a un gaussiano
+# de 1 px y apartar desde uno de 2 px. Las imágenes de este conjunto son todas nítidas, así que
+# el filtro solo aparta lo mal expuesto.
+quality:
+  blur_min: 19
+  blur_ok: 133
+
+detector:
+  backend: grounding_dino
+  model_id: IDEA-Research/grounding-dino-tiny
+  box_threshold: 0.2
+  agnostic_prompt: "tomato"
+
+curator:
+  keep_if: "at least one tomato is clearly visible and in focus"
+
+labeling:
+  mode: agnostic
+  max_iterations: 1
+  min_gain: 0.02
+  # Una sola estrategia. En la medición, reintentar con el modelo base a umbrales más bajos
+  # sumó 2 objetos correctos y costó el 45% del tiempo, porque comparte los puntos ciegos del
+  # modelo chico. Solo conviene sumar estrategias que ven cosas distintas, y el mosaico (tiles)
+  # tampoco ayudó. La calibración de la confianza corresponde a este modelo y este umbral.
+  strategies:
+    - { model_id: IDEA-Research/grounding-dino-tiny, box_threshold: 0.2 }
+
+export: [yolo]

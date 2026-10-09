@@ -1,0 +1,38 @@
+name: tomates
+images: /data/dataset-tomates/tomato     # ruta dentro del contenedor, solo lectura
+scene: "fotos de cultivo de tomate en invernadero, tomadas a mano con celular"
+
+classes:
+  - name: verde
+    prompt: "green unripe tomato"
+    synonyms: ["unripe tomato"]
+    definition: "tomate completamente verde, visible al menos en 50%"
+    not_this: ["hoja", "pimiento verde"]
+    min_box_px: 10
+  - name: semimaduro
+    prompt: "half-ripe tomato"
+    synonyms: ["orange tomato"]
+    definition: "tomate con transición de verde a rojo o naranja"
+    min_box_px: 10
+  - name: maduro
+    prompt: "ripe red tomato"
+    synonyms: ["red tomato"]
+    definition: "tomate rojo o rosado completamente maduro"
+    min_box_px: 10
+
+# Cortes calibrados mirando las imágenes de este proyecto a lo largo de la distribución:
+# por debajo de 25 son visiblemente borrosas, de 25 a 35 blandas pero utilizables.
+quality:
+  min_resolution: 300
+  blur_min: 25
+  blur_ok: 35
+  dedupe: true
+  dedupe_max_distance: 8    # a 8 son cuadros consecutivos de la misma escena, a 12 ya son distintas
+
+detector:
+  backend: grounding_dino
+  model_id: IDEA-Research/grounding-dino-tiny
+  box_threshold: 0.2
+  agnostic_prompt: "tomato"
+
+export: [yolo]
